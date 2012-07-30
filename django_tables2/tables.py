@@ -120,11 +120,21 @@ class TableData(object):
 
 class DeclarativeColumnsMetaclass(type):
     """
-    Metaclass that converts Column attributes on the class to a dictionary
-    called ``base_columns``, taking into account parent class ``base_columns``
-    as well.
+    Metaclass that allows table classes to be written with columns declared as
+    class variables and options declared in a class named `Meta`.
+
+    Columns are saved in class variable `base_columns` and options are in
+    `_meta`.
     """
     def __new__(cls, name, bases, attrs):
+        attr_meta = attrs.pop('Meta', None)
+
+        new_class = super(DeclarativeColumnsMetaclass, cls).__new__(name, bases, {'__module__': module})
+
+
+
+        # ---------------------------------------------------------------------
+
 
         attrs["_meta"] = opts = TableOptions(attrs.get("Meta", None))
         # extract declared columns
@@ -132,7 +142,6 @@ class DeclarativeColumnsMetaclass(type):
                                              if isinstance(column, Column)]
         columns.sort(lambda x, y: cmp(x[1].creation_counter,
                                       y[1].creation_counter))
-
         # If this class is subclassing other tables, add their fields as
         # well. Note that we loop over the bases in *reverse* - this is
         # necessary to preserve the correct order of columns.
@@ -264,6 +273,23 @@ class Table(StrAndUnicode):
     """
     __metaclass__ = DeclarativeColumnsMetaclass
     TableDataClass = TableData
+
+    class Meta:
+        attrs = AttributeDict()
+        default = u"—"
+        empty_text = None
+        fields = ()
+        exclude = ()
+        order_by = None
+        order_by_field = "sort"
+        page_field = "page"
+        per_page = 25
+        per_page_field = "per_page"
+        prefix = ""
+        sequence = Sequence()
+        orderable = sortable = True
+        model = None
+        template = "django_tables2/table.html"
 
     def __init__(self, data, order_by=None, orderable=None, empty_text=None,
                  exclude=None, attrs=None, sequence=None, prefix=None,
