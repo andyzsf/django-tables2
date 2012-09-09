@@ -576,3 +576,16 @@ def table_defaults_are_honored():
     table = Table([{}], default="abcd")
     table.default = "efgh"
     assert table.rows[0]['name'] == "efgh"
+
+
+@core.test
+def meta_attrs_is_inherited():
+    class Parent(tables.Table):
+        class Meta:
+            attrs = {"class": "foo"}
+
+    class Child(Parent):
+        pass
+
+    table = Child([])
+    assert table._meta.attrs == {"class": "foo"}
